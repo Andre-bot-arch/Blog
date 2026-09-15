@@ -30,42 +30,75 @@ namespace Blog.Controllers
         [HttpPost("v1/categories")]
         public async Task<IActionResult> PostAsync([FromBody] Category model, [FromServices] BlogDataContext context)
         {
-            await context.Categories.AddAsync(model);
-            await context.SaveChangesAsync();
-            return Created($"v1/categories/{model.Id}", model);
+            try
+            {
+                await context.Categories.AddAsync(model);
+                await context.SaveChangesAsync();
+                return Created($"v1/categories/{model.Id}", model);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "CTPT01 - Nao possivel incluir a categoria");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CTPT02 - Falha interna do servidor");
+            }
+
         }
 
-        [HttpPut("v1/categories/{int:id}")]
+        [HttpPut("v1/categories/{id:int}")]
         public async Task<IActionResult> PutAsync([FromRoute] int id, [FromBody] Category model, [FromServices] BlogDataContext context)
         {
-            var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
+            try
+            {
+                var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (category == null)
-                return NotFound();
+                if (category == null)
+                    return NotFound();
 
-            category.Name = model.Name;
-            category.Slug = model.Slug;
-            context.Categories.Update(category);
-            await context.SaveChangesAsync();
+                category.Name = model.Name;
+                category.Slug = model.Slug;
+                context.Categories.Update(category);
+                await context.SaveChangesAsync();
 
-            return Created($"v1/categories/{model.Id}", model);
+                return Created($"v1/categories/{model.Id}", model);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "CTPUT01 - Nao possivel alterar a categoria");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CTPT02 - Falha interna do servidor");
+            }
         }
 
-        [HttpDelete("v1/categories/{int:id}")]
+        [HttpDelete("v1/categories/{id:int}")]
         public async Task<IActionResult> DeleteAsync([FromRoute] int id, [FromServices] BlogDataContext context)
         {
-            var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
+            try
+            {
 
-            if (category == null)
-                return NotFound();
+                var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
 
-            context.Categories.Remove(category);
-            await context.SaveChangesAsync();
+                if (category == null)
+                    return NotFound();
 
-            return Ok(category);
+                context.Categories.Remove(category);
+                await context.SaveChangesAsync();
+
+                return Ok(category);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "CTDEL01 - Nao possivel deletar a categoria");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "CTDEL02 - Falha interna do servidor");
+            }
         }
-
-
 
     }
 }
