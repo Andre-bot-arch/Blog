@@ -22,7 +22,7 @@ namespace Blog.Controllers
             {
                 return StatusCode(500, new ResultViewModel<List<Category>>("CGA02 - falha ao lista categorias"));
             }
-
+ 
         }
 
         [HttpGet("v1/categories/{id:int}")]
