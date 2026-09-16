@@ -29,8 +29,9 @@ namespace Blog.Controllers
         }
 
         [HttpPost("v1/categories")]
-        public async Task<IActionResult> PostAsync([FromBody] Category model, [FromServices] BlogDataContext context)
+        public async Task<IActionResult> PostAsync([FromBody] EditorCategoryViewModel model, [FromServices] BlogDataContext context)
         {
+            
             await context.Categories.AddAsync(model);
             await context.SaveChangesAsync();
             return Created($"v1/categories/{model.Id}", model);
