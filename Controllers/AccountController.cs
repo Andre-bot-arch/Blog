@@ -3,6 +3,7 @@ using Blog.Extensions;
 using Blog.Models;
 using Blog.Services;
 using Blog.ViewModels;
+using BLog.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -58,13 +59,36 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("v1/accounts/login")]
-    public IActionResult Login()
+    public async Task<IActionResult> Login(
+        [FromBody] LoginViewModel model,
+        [FromServices] BlogDataContext context,
+        [FromServices] TokenService tokenService)
     {
-        var TokenService = new TokenService();
-        var token = TokenService.GenerateToken(null);
 
-        return Ok(token);
-    }
+        if(!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<string>(ModelState.GetErrors()));
+
+        var user = await context.Users
+           .AsNoTracking()
+           .Include(x => x.Roles)
+           .FirstOrDefaultAsync(u => u.Email == model.Email);
   
+        
+        if (user == null)
+            return StatusCode(401, new ResultViewModel<string>("ACL01 - usuario ou senha invalidos"));
+
+        if (!PasswordHasher.Verify(user.PasswordHash, model.Password))
+            return StatusCode(401, new ResultViewModel<string>("ACL02 - usuario ou senha invalidos"));
+
+        try
+        {
+           var token = tokenService.GenerateToken(user);
+           return Ok(new ResultViewModel<string>(token, null));            
+        }
+        catch
+        {
+            return StatusCode(500, new ResultViewModel<string>("ACL03 - falha interna no servidor"));
+        }
+    }
 
 }
