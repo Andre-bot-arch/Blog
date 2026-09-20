@@ -2,6 +2,7 @@ using Blog.Data;
 using Blog.Extensions;
 using Blog.Models;
 using Blog.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,7 @@ namespace Blog.Controllers
     public class CategoryController : ControllerBase
     {
         [HttpGet("v1/categories")]
+        [Authorize]
         public async Task<IActionResult> GetAsync([FromServices] BlogDataContext context)
         {
             try
@@ -38,6 +40,7 @@ namespace Blog.Controllers
         }
 
         [HttpPost("v1/categories")]
+        
         public async Task<IActionResult> PostAsync([FromBody] EditorCategoryViewModel model, [FromServices] BlogDataContext context)
         {
             try
