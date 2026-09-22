@@ -22,11 +22,11 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("v1/accounts")]
-    public async Task <IActionResult> Post(
-        [FromBody] RegisterViewModel model, [FromServices] BlogDataContext context)
+    public async Task<IActionResult> Post(
+        [FromBody] RegisterViewModel model, [FromServices] EmailService email, [FromServices] BlogDataContext context)
     {
-        if(!ModelState.IsValid)
-         return BadRequest(new ResultViewModel<string>(ModelState.GetErrors()));
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<string>(ModelState.GetErrors()));
 
         var user = new User
         {
@@ -42,9 +42,17 @@ public class AccountController : ControllerBase
         {
             await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
+
+            email.Send(
+                user.Name,
+                user.Email,
+                "bem vindo a o hunter",
+                $"sua senha é <strong>{password}</strong>"
+            );
             return Ok(new ResultViewModel<dynamic>(new
             {
-                user = user.Email, password
+                user = user.Email,
+                password
             }));
 
         }
@@ -65,15 +73,15 @@ public class AccountController : ControllerBase
         [FromServices] TokenService tokenService)
     {
 
-        if(!ModelState.IsValid)
+        if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<string>(ModelState.GetErrors()));
 
         var user = await context.Users
            .AsNoTracking()
            .Include(x => x.Roles)
            .FirstOrDefaultAsync(u => u.Email == model.Email);
-  
-        
+
+
         if (user == null)
             return StatusCode(401, new ResultViewModel<string>("ACL01 - usuario ou senha invalidos"));
 
@@ -82,8 +90,8 @@ public class AccountController : ControllerBase
 
         try
         {
-           var token = tokenService.GenerateToken(user);
-           return Ok(new ResultViewModel<string>(token, null));            
+            var token = tokenService.GenerateToken(user);
+            return Ok(new ResultViewModel<string>(token, null));
         }
         catch
         {
