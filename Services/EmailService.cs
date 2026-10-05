@@ -12,10 +12,10 @@ namespace Blog.Services
         public bool Send(string toName, string toEmail, string subject, string body, string fromName = "andre", string fromEmail = "andredev808@gmail.com")
         {
             var smtp = new SmtpClient(Configuration.Smtp.Host, Convert.ToInt32(Configuration.Smtp.Port));
-            smtp.Credentials = new NetworkCredential(Configuration.Smtp.UserName, Configuration.Smtp.Password);
             smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
             smtp.EnableSsl = true;
             smtp.UseDefaultCredentials = false;
+            smtp.Credentials = new NetworkCredential(Configuration.Smtp.UserName, Configuration.Smtp.Password);
 
             var mail = new MailMessage();
             mail.From = new MailAddress(fromEmail, fromName);
@@ -29,7 +29,7 @@ namespace Blog.Services
                 smtp.Send(mail);
                 return true;
             }
-            catch (Exception ex)
+            catch (SmtpException ex)
             {
                 return false;
             }
